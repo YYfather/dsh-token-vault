@@ -1,0 +1,14 @@
+# @yyfather/dsh-token-vault bundle patch.
+#
+# Applied over the dsh-web-app layer. Contributes ONE host row:
+# the plugin that registers the vault_* tools (ctx.tools), the usage-rules
+# prompt section (ctx.systemPrompt), and the same-origin management routes
+# (GET /vault/status, POST /vault/set, POST /vault/remove, POST /vault/import)
+# the browser half uses. Tokens live in DSH's credential store (ctx.credentials,
+# ~/.credentials.yaml) — secrets never enter model context nor client UI.
+#
+# The row id is the local mount key; keep it distinct from other insert ids.
+
+- insert:
+    - id: dsh-token-vault
+      name: '@yyfather/dsh-token-vault'
