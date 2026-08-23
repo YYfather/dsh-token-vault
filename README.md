@@ -1,43 +1,44 @@
 # @yyfather/dsh-token-vault
 
-DeepSeek Harness **凭证库插件**：把 GitHub / npm 等令牌安全地保存在 DSH 凭证库（`ctx.credentials` → `~/.credentials.yaml`），**明文永不进入模型上下文与浏览器端**；代理通过 `vault_run` 直接以注入环境变量的方式调用 gh / npm / npx / node / git。
+**Secure credential vault for DeepSeek Harness** · 凭证库插件
 
-> 再也不用把 token 贴进对话：设置 → 凭证库 录入一次，之后所有操作由 Host 侧代持。
+Store your GitHub / npm / API tokens in DSH's own credential store (`ctx.credentials` → `~/.credentials.yaml`). **Secrets never leave the host** — no plaintext file, no model context, no browser round-trip. The agent uses tokens through `vault_run` which injects them into a child-process environment only; `vault_show` (the single disclosure path) requires an explicit `confirm: true`.
 
-## 工具（代理可用）
+> 设置 → 凭证库 录入一次，之后所有 GitHub/npm 操作由 Host 侧代持。
 
-| 工具 | 说明 |
+## Tools (agent-facing)
+
+| Tool | Purpose |
 | --- | --- |
-| `vault_list` | 列出已保存令牌名（不含值） |
-| `vault_has` | 检查某个令牌是否存在 |
-| `vault_set` | 保存/更新令牌（值不回显） |
-| `vault_remove` | 删除令牌 |
-| `vault_import` | 从 `gh auth token`（source: gh）或 `~/.npmrc`（source: npm）导入 |
-| `vault_run` | 运行 `gh/npm/npx/node/git`，令牌注入环境变量（默认 github/gh → `GH_TOKEN`，npm/node → `NPM_TOKEN`，可用 `env_name` 覆盖），输出不含任何秘密 |
-| `vault_show` | 明文查看（**必须 confirm: true**；仅当用户明确要求时） |
+| `vault_list` | List stored token names only (never values) |
+| `vault_has` | Check one token's presence |
+| `vault_set` | Store/update a token (value never echoed) |
+| `vault_remove` | Delete a token |
+| `vault_import` | Import from `gh auth token` (source: gh) or `~/.npmrc` (source: npm) |
+| `vault_run` | Run `gh/npm/npx/node/git` with the token injected via env (github/gh → `GH_TOKEN`, npm/node → `NPM_TOKEN`, `env_name` overrides); output contains no secrets |
+| `vault_show` | Reveal one token (**requires `confirm: true`**, only on explicit user request) |
 
-## 安装（本地）
+## Install
 
 ```sh
 dsh plugin --profile desktop add @yyfather/dsh-token-vault
 ```
 
-或本地路径：`dsh plugin --profile desktop add "file:E:/studywork/DSHwork/plugins/token-vault/dsh-token-vault"`
+The package declares `dsh.bundle.patch` so it mounts automatically; restart DSH Desktop to activate. Then manage it from **设置 → 市场 → 已安装** (enable / update / uninstall), or paste tokens in **设置 → 凭证库**.
 
-带 `dsh.bundle.patch` 的包安装后自动挂载，重启 DSH Desktop 生效。
+## Security design
 
-## 安全设计
+- Storage: DSH credential record space (`dsh-token-vault/<name>`, atomic `modifyRecord`) — no new plaintext files.
+- Usage: `vault_run` places the token in the child environment only; stdout/stderr/logs never contain it.
+- Disclosure: `vault_show` is the only leak path and demands `confirm: true`; usage rules advise rotating after use.
+- Prompt section `token-vault-usage` injected automatically: the agent must never print or persist tokens.
 
-- 存储：DSH 凭证库记录空间（`dsh-token-vault/<name>`，`modifyRecord` 原子读改写），不新增明文文件。
-- 使用：`vault_run` 只把令牌放进子进程环境变量，stdout/stderr 与日志天然不含令牌。
-- 展示：`vault_show` 是唯一泄露点，且要求 `confirm: true`（用户明确要求）；规则提示用后轮换。
-- 注入提示词段 `token-vault-usage`：禁止代理打印/转述令牌、禁止写入工作区文件。
+## Structure
 
-## 结构
-
-- `lib/index.js` — host：`ctx.tools.register` 注册 7 个 vault 工具；`webServer` 提供 `/vault/status|set|remove|import`；`systemPrompt.section` 注入使用规则
-- `lib/client.js` — 浏览器端 `__ModuleLoader__` bundle：设置 → 凭证库（录入/导入/删除，值不回显）
-- `cordis.patch.yml` — bundle 挂载补丁
+- `lib/index.js` — host: `ctx.tools.register` for 7 vault tools; `webServer` routes `/vault/status|set|remove|import`; `systemPrompt.section` usage rules
+- `lib/client.js` — browser `__ModuleLoader__` bundle: Settings → 凭证库 (add / import / delete, values never displayed)
+- `cordis.patch.yml` — bundle mount patch
+- `package.json` — market-format compliant (strict `inject`, full `exports` incl. `./client` and `./cordis.patch.yml`)
 
 ## License
 

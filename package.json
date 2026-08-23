@@ -1,7 +1,7 @@
 {
   "name": "@yyfather/dsh-token-vault",
-  "version": "1.0.2",
-  "description": "Secure credential vault for DeepSeek Harness: store GitHub/npm/API tokens (secrets never leave the host), run gh/npm commands with the token injected in the environment, and manage tokens from a Settings page.",
+  "version": "1.0.3",
+  "description": "Secure credential vault for DeepSeek Harness: store GitHub/npm/API tokens (secrets never leave the host), run gh/npm/npx/node/git with the token injected in the environment, and manage tokens from a Settings page.",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -20,6 +20,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/YYfather/dsh-token-vault.git"
+  },
+  "homepage": "https://github.com/YYfather/dsh-token-vault#readme",
+  "bugs": {
+    "url": "https://github.com/YYfather/dsh-token-vault/issues"
   },
   "publishConfig": {
     "access": "public"
