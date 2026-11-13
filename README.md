@@ -2,7 +2,7 @@
 
 **Secure credential vault for DeepSeek Harness** · 凭证库插件
 
-Store API keys, tokens, accounts and SSH keys in DSH's own credential store (`ctx.credentials` → `~/.credentials.yaml`). **Secrets never leave the host** — no plaintext file, no model context, no browser round-trip. The agent uses them through `vault_run`, which injects one field into a child-process environment only; `vault_show` (the single disclosure path) requires an explicit `confirm: true`.
+Store API keys, tokens, accounts and SSH keys in DSH's own credential store (`ctx.credentials` → `~/.credentials.yaml`). **Encrypted at rest with Windows DPAPI**, never in model context, never in the browser. The agent uses them through `vault_run`, which injects one field into a child-process environment only; `vault_show` (the single disclosure path) requires an explicit `confirm: true`.
 
 > 设置 → 凭证库 录入一次，之后 GitHub / npm / 任意 REST API 调用由 Host 侧代持。
 
@@ -55,10 +55,15 @@ The package declares `dsh.bundle.patch` so it mounts automatically; restart DSH 
 
 ## Security design
 
-- Storage: DSH credential record space (`dsh-token-vault/<name>`, atomic `modifyRecord`) — no new plaintext files. Record payload is `{ v: 2, type, fields }`; legacy single-token records are read as type `token`.
-- Usage: `vault_run` places one field in the child environment only; stdout/stderr are scrubbed of secret-marked field values before they reach the model.
-- Disclosure: `vault_show` is the only leak path and demands `confirm: true`.
-- Prompt section `token-vault-usage` injected automatically: the agent must never print or persist secret values.
+- **At rest — encrypted**: every record payload is encrypted with Windows DPAPI (`CurrentUser`) before it reaches DSH's credential store, and written as `{ v: 3, enc: "dpapi", data: <base64> }`. The ciphertext is bound to this Windows account on this machine: a copied `.credentials.yaml`, a backup or a disk image decrypts to nothing, while the same user gets it back with no password prompt. PowerShell's `ProtectedData` is the bridge; the plaintext travels over **stdin**, never argv, so it stays out of process lists.
+- **What encryption does not do**: a process already running as you can call DPAPI itself, so this removes plaintext at rest — not same-user access. Non-secret metadata (name / type / remark / field names / env var) stays readable; that is what lets listing work without decryption.
+- **Metadata vs values**: `vault_list` and the Settings page never decrypt — they read name, type, remark, field names and the env var only.
+- **Legacy records** written before encryption are read as-is, then re-encrypted in place the first time they are listed or used.
+- **Usage**: `vault_run` places one field in the child environment only; stdout/stderr are scrubbed of secret-marked field values before they reach the model.
+- **Disclosure**: `vault_show` is the only leak path and demands `confirm: true`.
+- **Prompt section** `token-vault-usage` injected automatically: the agent must never print or persist secret values.
+
+Platform note: encryption uses DPAPI, so it is Windows-only. On other platforms the plugin refuses to store (`DPAPI 加密仅支持 Windows`) rather than silently falling back to plaintext.
 
 ## Structure
 

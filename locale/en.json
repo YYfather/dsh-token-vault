@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Credential vault",
-    "description": "Stores API keys, tokens, passwords and SSH keys as four-field credentials (name, type, fields, remark). The agent uses a field through vault_run — gh, npm, npx, node, git or curl — with %TOKEN% substitution, so plaintext never enters the conversation."
+    "description": "Stores API keys, tokens, passwords and SSH keys as four-field credentials (name, type, fields, remark). The agent uses a field through vault_run — gh, npm, npx, node, git or curl — with %TOKEN% substitution, and each record is encrypted at rest with Windows DPAPI, so plaintext never enters the conversation."
   }
 }
