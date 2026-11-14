@@ -1,7 +1,7 @@
 {
   "name": "@yyfather/dsh-token-vault",
-  "version": "1.0.4",
-  "description": "Credential vault for DeepSeek Harness: four-field credentials (name / type / credential fields / remark), preset types incl. API key, token, username-password, database, SMTP and SSH key, Chinese names, and gh/npm/npx/node/git/curl execution with %TOKEN% substitution — secrets never leave the host.",
+  "version": "1.0.5",
+  "description": "Credential vault for DeepSeek Harness: four-field credentials (name / type / credential fields / remark), in-place editing with keep-on-blank semantics, preset types incl. API key, token, username-password, database, SMTP and SSH key, Chinese names, and gh/npm/npx/node/git/curl execution with %TOKEN% substitution — secrets never leave the host.",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {

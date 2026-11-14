@@ -53,6 +53,27 @@ dsh plugin --profile desktop add @yyfather/dsh-token-vault
 
 The package declares `dsh.bundle.patch` so it mounts automatically; restart DSH Desktop to activate. Then manage it from **设置 → 市场 → 已安装** (enable / update / uninstall), or paste credentials in **设置 → 凭证库**.
 
+## Editing credentials
+
+Open **Settings → Credential vault** and click **编辑** on a saved row. The form is prefilled with the
+name, type, remark and environment-variable name; secret fields stay blank.
+
+| Input | Effect |
+| --- | --- |
+| non-empty value | overwrites that field |
+| empty string | keeps the stored value |
+| field omitted | deletes that field (delete a row to drop a custom field) |
+
+The same semantics apply to the agent tool `vault_set`: calling it with an existing name updates the
+credential instead of replacing every field. The name cannot be renamed in place — create the new name
+and delete the old one.
+
+```sh
+# update only the remark; the token stays untouched
+curl -s localhost:PORT/vault/set -H 'content-type: application/json' \
+  -d '{"name":"npm","type":"npm","fields":{"token":""},"remark":"rotated 2026-11"}'
+```
+
 ## Security design
 
 - **At rest — encrypted**: every record payload is encrypted with Windows DPAPI (`CurrentUser`) before it reaches DSH's credential store, and written as `{ v: 3, enc: "dpapi", data: <base64> }`. The ciphertext is bound to this Windows account on this machine: a copied `.credentials.yaml`, a backup or a disk image decrypts to nothing, while the same user gets it back with no password prompt. PowerShell's `ProtectedData` is the bridge; the plaintext travels over **stdin**, never argv, so it stays out of process lists.

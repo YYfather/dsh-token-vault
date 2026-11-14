@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "凭证库",
-    "description": "以「名称 / 类型 / 凭证字段 / 备注」四栏保存 API Key、令牌、密码与 SSH 私钥。字段在落盘前用 Windows DPAPI 加密；代理通过 vault_run（gh、npm、npx、node、git、curl）取用某个字段，参数里可用 %TOKEN% 占位，明文不进对话。"
+    "description": "以「名称 / 类型 / 凭证字段 / 备注」四栏保存 API Key、令牌、密码与 SSH 私钥。字段在落盘前用 Windows DPAPI 加密；代理通过 vault_run（gh、npm、npx、node、git、curl）取用某个字段，参数里可用 %TOKEN% 占位，明文不进对话。 支持在 设置 → 凭证库 直接编辑已有凭证：字段留空表示保持原值。"
   }
 }
